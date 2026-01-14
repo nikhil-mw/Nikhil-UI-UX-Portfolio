@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 
 export default function ScrollyCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [images, setImages] = useState<HTMLImageElement[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [loadProgress, setLoadProgress] = useState(0);
 
   // Scroll progress from 0 to 1
   const { scrollYProgress } = useScroll({
@@ -24,6 +25,7 @@ export default function ScrollyCanvas() {
         const fileNames = await res.json() as string[];
         
         const loadedImages: HTMLImageElement[] = [];
+        let loadedCount = 0;
 
         for (const fileName of fileNames) {
             const img = new Image();
@@ -33,6 +35,8 @@ export default function ScrollyCanvas() {
                 img.onerror = resolve; // Continue even if one fails
             });
             loadedImages.push(img);
+            loadedCount++;
+            setLoadProgress(Math.round((loadedCount / fileNames.length) * 100));
         }
         setImages(loadedImages);
         setIsLoaded(true);
@@ -115,11 +119,47 @@ export default function ScrollyCanvas() {
           className="w-full h-full object-cover block"
         />
         <Overlay scrollYProgress={scrollYProgress} />
-        {!isLoaded && (
-            <div className="absolute inset-0 flex items-center justify-center bg-background text-foreground z-50">
-                <span className="animate-pulse">Loading Experience...</span>
-            </div>
-        )}
+        
+        <AnimatePresence mode="wait">
+            {!isLoaded && (
+                <motion.div
+                    key="loader"
+                    initial={{ y: 0 }}
+                    exit={{ y: "-100%" }}
+                    transition={{ duration: 0.8, ease: [0.76, 0, 0.24, 1] }} 
+                    className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-[#0a0a0a] text-white"
+                >
+                   <div className="w-full max-w-md px-6 flex flex-col gap-2">
+                        {/* Header Details */}
+                        <div className="flex justify-between text-[10px] uppercase tracking-[0.2em] opacity-50 font-sans">
+                            <span>Portfolio 2026</span>
+                            <span>Initialization</span>
+                        </div>
+
+                        {/* Large Counter */}
+                        <div className="text-8xl md:text-9xl font-black font-sans tracking-tighter leading-none mb-4 tabular-nums text-transparent bg-clip-text bg-gradient-to-b from-white to-white/50">
+                            {loadProgress}%
+                        </div>
+
+                        {/* Progress Line */}
+                        <div className="h-[2px] w-full bg-white/10 rounded-full overflow-hidden">
+                            <motion.div 
+                                className="h-full bg-white"
+                                initial={{ width: "0%" }}
+                                animate={{ width: `${loadProgress}%` }}
+                                transition={{ type: "spring", bounce: 0, duration: 0.2 }}
+                            />
+                        </div>
+
+                        {/* Footer Details */}
+                        <div className="flex justify-between text-[10px] uppercase tracking-[0.2em] opacity-50 font-sans mt-2">
+                            <span>Loading High-Res Sequence</span>
+                            <span className="animate-pulse">Stand By</span>
+                        </div>
+                   </div>
+                </motion.div>
+            )}
+        </AnimatePresence>
       </div>
     </div>
   );
@@ -134,48 +174,67 @@ function Overlay({ scrollYProgress }: { scrollYProgress: import("framer-motion")
   const y2 = useTransform(scrollYProgress, [0.2, 0.3, 0.5], [100, 0, -100]);
   const o2 = useTransform(scrollYProgress, [0.15, 0.3, 0.45], [0, 1, 0]);
 
-  const y3 = useTransform(scrollYProgress, [0.45, 0.6, 0.8], [100, 0, -100]);
-  const o3 = useTransform(scrollYProgress, [0.40, 0.6, 0.75], [0, 1, 0]);
+  const y3 = useTransform(scrollYProgress, [0.45, 0.75, 1], [100, 0, -50]);
+  const o3 = useTransform(scrollYProgress, [0.5, 0.75, 0.95], [0, 1, 0]);
 
   return (
     <div className="absolute inset-0 pointer-events-none z-10 flex flex-col justify-center items-center">
       
-      {/* Section 1 - Intro */}
+      {/* Section 1 - Intro (Modern UI Badge Style) */}
       <motion.div 
         style={{ y: y1, opacity: o1 }} 
-        className="absolute w-full h-full flex flex-col items-center justify-center p-8"
+        className="absolute w-full h-full flex flex-col items-end justify-center px-6 md:px-20"
       >
-         <div className="relative text-center mix-blend-overlay">
-          <p className="font-sans text-sm md:text-xl font-medium tracking-[0.6em] uppercase text-[#1a1a1a] mb-4 md:mb-8">
-            UI · UX Designer
-          </p>
-          <h1 className="font-sans text-7xl md:text-9xl font-light tracking-tighter text-[#0a0a0a] leading-[0.9]">
-            Nikhil M
-            <span className="block font-medium">Wakchaure</span>
-          </h1>
+        <div className="flex flex-col items-end">
+          
+          {/* Role as a UI Component (Pill) */}
+          <div className="mb-6 px-4 py-2 border border-[#1a1a1a]/30 rounded-full bg-white/5 backdrop-blur-sm">
+            <p className="font-sans text-sm md:text-base font-semibold tracking-[0.2em] uppercase text-[#1a1a1a]">
+              ● UI/UX Designer
+            </p>
+          </div>
+
+          {/* Name Block */}
+          <div className="text-right relative uppercase text-[#0a0a0a]">
+            <h1 className="font-sans text-7xl md:text-9xl font-medium tracking-tighter leading-[0.9]">
+              <span className="block">Nikhil . M.</span>
+              <span className="block">Wakchaure</span>
+            </h1>
+          </div>
+
+          {/* Decorative Elements */}
+          <div className="flex items-center gap-4 mt-8 opacity-60">
+             <span className="h-[1px] w-12 bg-black"></span>
+             <span className="font-sans text-sm font-medium tracking-widest text-black">PUNE / MAHARASHTRA / INDIA</span>
+          </div>
+
         </div>
       </motion.div>
 
-      {/* Section 2 - Craft */}
+      {/* Section 2 - Craft (RIGHT SIDE) */}
       <motion.div 
         style={{ y: y2, opacity: o2 }} 
-        className="absolute w-full h-full flex flex-col justify-end pb-[15%] md:pb-[10%] px-8 md:px-24"
+        className="absolute w-full h-full flex flex-col items-end justify-center px-6 md:px-20"
       >
-        <h2 className="font-sans text-5xl md:text-8xl font-light tracking-tight text-white mix-blend-difference leading-none">
-          Crafting digital <br /> 
-          <span className="font-semibold italic">Masterpieces.</span>
-        </h2>
+        <div className="relative text-right mix-blend-overlay text-[#0a0a0a]">
+           <h2 className="font-sans text-6xl md:text-8xl font-medium tracking-tighter leading-[0.9] uppercase">
+            <span className="block">Crafting Digital</span>
+             <span className="block">Masterpieces.</span>
+           </h2>
+        </div>
       </motion.div>
 
-      {/* Section 3 - Innovation */}
+      {/* Section 3 - Innovation (BOTTOM LEFT) */}
       <motion.div 
         style={{ y: y3, opacity: o3 }} 
-        className="absolute w-full h-full flex flex-col justify-start pt-[15%] md:pt-[20%] items-end px-8 md:px-24"
+        className="absolute w-full h-full flex flex-col justify-end pb-[15%] md:pb-[10%] px-8 md:px-24"
       >
-        <h2 className="font-sans text-5xl md:text-8xl font-light tracking-tight text-white mix-blend-difference text-right leading-none">
-          Merging Art <br /> 
-          <span className="font-normal">& Innovation.</span>
-        </h2>
+        <div className="text-left mix-blend-overlay text-[#0a0a0a]">
+          <h2 className="font-sans text-6xl md:text-8xl font-medium tracking-tighter leading-[0.9] uppercase">
+            Merging Art <br /> 
+            & Innovation.
+          </h2>
+        </div>
       </motion.div>
 
     </div>

@@ -1,14 +1,11 @@
 import ScrollyCanvas from "../components/ScrollyCanvas";
 import { Projects } from "../components/Projects";
-import { ThemeToggle } from "../components/theme-toggle";
+import { Navbar } from "../components/Navbar";
 
 export default function Home() {
   return (
     <main className="relative bg-background text-foreground selection:bg-white/20">
-      {/* Optional: Navigation/Header with Toggle */}
-      <nav className="fixed top-6 right-6 z-50">
-         <ThemeToggle />
-      </nav>
+      <Navbar />
 
       <ScrollyCanvas />
       
